@@ -380,6 +380,7 @@ def analyze_digital_impersonation(
 
                 for column in (
                     "channel",
+                    "sender_name",
                     "sender_domain",
                     "claimed_identity",
                     "claimed_role",
