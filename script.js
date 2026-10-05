@@ -1361,16 +1361,76 @@ window.analyzeAccountTakeover = analyzeAccountTakeover;
    DIGITAL IMPERSONATION DETECTION
    ============================================================ */
 
+/* The sender field accepts an email address or a phone number only:
+   display names such as "IT Service Desk" are rejected so every
+   detection is tied to real sending infrastructure. */
+
+const IMPERSONATION_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const IMPERSONATION_PHONE_PATTERN = /^\+?[\d\s().-]+$/;
+
+function classifyImpersonationSender(value) {
+    const sender = String(value || "").trim();
+
+    if (!sender) return null;
+
+    if (IMPERSONATION_EMAIL_PATTERN.test(sender)) return "email";
+
+    if (!IMPERSONATION_PHONE_PATTERN.test(sender)) return null;
+
+    const digits = sender.replace(/\D/g, "");
+
+    if (digits.length < 7 || digits.length > 15) return null;
+
+    return "phone";
+}
+
+function normaliseImpersonationPhone(value) {
+    const sender = String(value || "").trim();
+    const digits = sender.replace(/\D/g, "");
+
+    return sender.startsWith("+") ? `+${digits}` : digits;
+}
+
+function updateImpersonationSenderState(value) {
+    const sender = String(value || "").trim();
+    const kind = classifyImpersonationSender(sender);
+    const invalid = Boolean(sender) && !kind;
+
+    $("#impersonationSenderInput")?.classList.toggle("invalid", invalid);
+
+    const hint = $("#impersonationSenderHint");
+
+    if (hint) {
+        hint.classList.toggle("error", invalid);
+        hint.textContent = invalid
+            ? "Enter a valid email address (name@company.com) or phone number (+91 98765 43210)."
+            : "Email address or phone number only — sender display names are not accepted.";
+    }
+
+    return kind;
+}
+
 function buildImpersonationMessage(sender, messageText) {
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sender);
-    const isPhone = /^\+?[\d\s()-]{7,}$/.test(sender);
+    const kind = classifyImpersonationSender(sender);
+
+    if (!kind) return null;
+
+    const address = String(sender).trim();
+    const isEmail = kind === "email";
+
+    /* Emails carry their sending domain; phone numbers are stored as
+       the sending number itself so repeated numbers cluster into one
+       campaign, matching the sample CSV convention. */
+    const senderDomain = isEmail
+        ? address.split("@")[1].toLowerCase()
+        : normaliseImpersonationPhone(address);
 
     return {
         timestamp: new Date().toISOString(),
         message_id: `msg-${Date.now().toString(36)}`,
-        channel: isEmail ? "email" : isPhone ? "sms" : "",
-        sender_name: sender || "Unknown sender",
-        sender_domain: isEmail ? sender.split("@")[1] : "",
+        channel: isEmail ? "email" : "sms",
+        sender_name: isEmail ? address : senderDomain,
+        sender_domain: senderDomain,
         message_text: messageText,
         context: "reported by the organisation"
     };
@@ -1396,8 +1456,10 @@ function initializeDigitalImpersonation() {
         const sender = senderInput.value.trim();
         const messageText = messageInput.value.trim();
 
+        const senderKind = updateImpersonationSenderState(sender);
+
         state.impersonationMessages =
-            sender && messageText
+            senderKind && messageText
                 ? [buildImpersonationMessage(sender, messageText)]
                 : null;
 
@@ -1415,12 +1477,12 @@ function initializeDigitalImpersonation() {
 
 function loadImpersonationDemo() {
     const demoMessages = [
-        {timestamp:"2026-10-03T09:00:00",message_id:"msg001",channel:"sms",sender_name:"Unknown",sender_domain:"",claimed_identity:"Delhi Police Cyber Cell",claimed_role:"police officer",claimed_organisation:"Delhi Police",message_text:"URGENT notice from government of india: a case has been registered against you for money laundering. Your bank account will be frozen within 24 hours. Do not tell anyone about this notice.",context:"employee received on personal mobile"},
-        {timestamp:"2026-10-03T09:30:00",message_id:"msg002",channel:"email",sender_name:"IT Service Desk",sender_domain:"sbi-netbanking-alert.xyz",claimed_identity:"SBI Customer Care",claimed_role:"security officer",claimed_organisation:"State Bank of India",message_text:"Dear valued customer your account will be suspended today. You must confirm your OTP and net banking password immediately or your account will be deactivated. Click here to update KYC now.",context:"vendor reported a bank phishing email"},
-        {timestamp:"2026-10-03T10:00:00",message_id:"msg003",channel:"email",sender_name:"Anil Verma",sender_domain:"",claimed_identity:"",claimed_role:"CEO",claimed_organisation:"",message_text:"This is your CEO. We have a confidential board meeting today. I need you to change the vendor bank details immediately and transfer the advance payment before midnight. Do not discuss this with the finance department.",context:"finance executive received an internal fraud attempt"},
-        {timestamp:"2026-10-03T10:30:00",message_id:"msg004",channel:"sms",sender_name:"Unknown",sender_domain:"",claimed_identity:"Income Tax Department",claimed_role:"tax officer",claimed_organisation:"Income Tax Department",message_text:"Your income tax return is pending and a penalty of 50000 rupees has been imposed. Legal action will be taken if you do not pay immediately. Kindly do not call the department to verify.",context:"staff member reported an SMS scam"},
-        {timestamp:"2026-10-03T11:00:00",message_id:"msg005",channel:"email",sender_name:"HR Admin",sender_domain:"hr-update-portal.top",claimed_identity:"Human Resources",claimed_role:"hr manager",claimed_organisation:"Acme Corporation",message_text:"Attention all employees this is HR. Your salary revision is approved. Share your bank account number and OTP on this secure form to update your payroll records. Click the link below to submit details.",context:"circular email with a lookalike HR portal"},
-        {timestamp:"2026-10-03T11:30:00",message_id:"msg006",channel:"sms",sender_name:"Unknown",sender_domain:"",claimed_identity:"University Examination Cell",claimed_role:"registrar",claimed_organisation:"University Authority",message_text:"Your examination hall ticket is cancelled. Confirm your OTP on http://exam-verify.xyz to reissue the hall ticket before midnight or you will be debarred from the exam.",context:"student reported a verification scam"}
+        {timestamp:"2026-10-03T09:00:00",message_id:"msg001",channel:"sms",sender_name:"+911234567890",sender_domain:"+911234567890",claimed_identity:"Delhi Police Cyber Cell",claimed_role:"police officer",claimed_organisation:"Delhi Police",message_text:"URGENT notice from government of india: a case has been registered against you for money laundering. Your bank account will be frozen within 24 hours. Do not tell anyone about this notice.",context:"employee received on personal mobile"},
+        {timestamp:"2026-10-03T09:30:00",message_id:"msg002",channel:"email",sender_name:"alerts@sbi-netbanking-alert.xyz",sender_domain:"sbi-netbanking-alert.xyz",claimed_identity:"SBI Customer Care",claimed_role:"security officer",claimed_organisation:"State Bank of India",message_text:"Dear valued customer your account will be suspended today. You must confirm your OTP and net banking password immediately or your account will be deactivated. Click here to update KYC now.",context:"vendor reported a bank phishing email"},
+        {timestamp:"2026-10-03T10:00:00",message_id:"msg003",channel:"email",sender_name:"anil.verma@acme-corp.com",sender_domain:"acme-corp.com",claimed_identity:"",claimed_role:"CEO",claimed_organisation:"",message_text:"This is your CEO. We have a confidential board meeting today. I need you to change the vendor bank details immediately and transfer the advance payment before midnight. Do not discuss this with the finance department.",context:"finance executive received an internal fraud attempt"},
+        {timestamp:"2026-10-03T10:30:00",message_id:"msg004",channel:"sms",sender_name:"+919876543210",sender_domain:"+919876543210",claimed_identity:"Income Tax Department",claimed_role:"tax officer",claimed_organisation:"Income Tax Department",message_text:"Your income tax return is pending and a penalty of 50000 rupees has been imposed. Legal action will be taken if you do not pay immediately. Kindly do not call the department to verify.",context:"staff member reported an SMS scam"},
+        {timestamp:"2026-10-03T11:00:00",message_id:"msg005",channel:"email",sender_name:"hr@hr-update-portal.top",sender_domain:"hr-update-portal.top",claimed_identity:"Human Resources",claimed_role:"hr manager",claimed_organisation:"Acme Corporation",message_text:"Attention all employees this is HR. Your salary revision is approved. Share your bank account number and OTP on this secure form to update your payroll records. Click the link below to submit details.",context:"circular email with a lookalike HR portal"},
+        {timestamp:"2026-10-03T11:30:00",message_id:"msg006",channel:"sms",sender_name:"+919812345678",sender_domain:"+919812345678",claimed_identity:"University Examination Cell",claimed_role:"registrar",claimed_organisation:"University Authority",message_text:"Your examination hall ticket is cancelled. Confirm your OTP on http://exam-verify.xyz to reissue the hall ticket before midnight or you will be debarred from the exam.",context:"student reported a verification scam"}
     ];
 
     state.impersonationMessages = demoMessages;
@@ -1432,13 +1494,15 @@ function loadImpersonationDemo() {
     if (senderInput) senderInput.value = sample.sender_name || "";
     if (messageInput) messageInput.value = sample.message_text || "";
 
+    updateImpersonationSenderState(sample.sender_name);
+
     const counter = $("#impersonationMessageCount");
     if (counter) counter.textContent = `${demoMessages.length} messages (demo)`;
 
     resetImpersonationResult();
     showToast(
         "Demo scenario loaded",
-        `${demoMessages.length} reported messages are ready to analyse. Editing either field analyses only that message.`,
+        `${demoMessages.length} reported messages are ready to analyse. Each sender is an email address or phone number; editing either field analyses only that message.`,
         "success"
     );
 }
@@ -1452,17 +1516,26 @@ async function analyzeDigitalImpersonation() {
         const sender = (senderElement?.value || "").trim();
         const messageText = (messageElement?.value || "").trim();
 
+        const senderKind = updateImpersonationSenderState(sender);
+
         if (!sender && !messageText) {
             showToast(
                 "Sender and message required",
-                "Enter the reported sender and paste the message before starting the analysis.",
+                "Enter the sender's email address or phone number, then paste the reported message.",
                 "error"
             );
             senderElement?.focus();
         } else if (!sender) {
             showToast(
                 "Sender required",
-                "Enter the sender name or address before starting the analysis.",
+                "Enter the sender's email address or phone number before starting the analysis.",
+                "error"
+            );
+            senderElement?.focus();
+        } else if (!senderKind) {
+            showToast(
+                "Email or phone number required",
+                "The sender field accepts only an email address or a phone number — no display names.",
                 "error"
             );
             senderElement?.focus();
@@ -1629,7 +1702,8 @@ function buildImpersonationMessageCard(message, senderLookup) {
     const reasons = Array.isArray(message.reasons) ? message.reasons : [];
 
     const submittedSender = senderLookup?.get(String(message.message_id ?? "")) || "";
-    const claimed = message.claimed_identity || message.claimed_organisation || message.sender_name || submittedSender || message.sender_domain;
+    const senderAddress = submittedSender || message.sender_name || message.sender_domain || "";
+    const claimed = message.claimed_identity || message.claimed_organisation || senderAddress;
     const channel = message.channel ? String(message.channel).toUpperCase() : "MESSAGE";
 
     const detectorHtml = detectors.length
@@ -1644,9 +1718,14 @@ function buildImpersonationMessageCard(message, senderLookup) {
         ? `<p class="takeover-excerpt">${escapeHtml(String(message.message_text).slice(0, 180))}${String(message.message_text).length > 180 ? "…" : ""}</p>`
         : "";
 
+    const senderLine = senderAddress
+        ? `<p class="takeover-sender">Sender: ${escapeHtml(senderAddress)}</p>`
+        : "";
+
     return `
         <article class="takeover-account-card ${riskClass}">
             <div class="takeover-account-top"><div><span class="takeover-account-label">${escapeHtml(channel)} · ${escapeHtml(message.message_id ?? "Unknown message")}</span><strong>${escapeHtml(claimed || "Unattributed message")}</strong></div><div class="takeover-risk-badge ${riskClass}">${escapeHtml(risk)} RISK</div></div>
+            ${senderLine}
             <div class="takeover-account-score"><span>RISK SCORE</span><strong>${escapeHtml(message.risk_score ?? 0)}</strong></div>
             ${excerpt}
             <div class="takeover-detector-tags">${detectorHtml}</div>
