@@ -48,7 +48,10 @@ const CONFIG = {
         "cyberguard_analysis_history",
 
     ORGANISATION_KEY:
-        "cyberguard_organisation"
+        "cyberguard_organisation",
+
+    ORGANISATION_DOMAIN_KEY:
+        "cyberguard_organisation_domain"
 };
 
 
@@ -89,7 +92,10 @@ const state = {
         [],
 
     organisation:
-        "Your Organisation"
+        "Acme Corporation",
+
+    organisationDomain:
+        "acme-corp.com"
 };
 
 
@@ -1436,6 +1442,92 @@ function buildImpersonationMessage(sender, messageText) {
     };
 }
 
+/* Demo dataset for this section.
+   Every row describes an incident reported by the configured
+   organisation: claimed entities, sender addresses, message text and
+   reporting context all come from the organisation profile in
+   Organisation Settings instead of unrelated third-party brands. */
+
+function buildImpersonationDemoMessages(profile) {
+    const org = profile?.name || "Acme Corporation";
+    const domain = profile?.domain || "acme-corp.com";
+
+    return [
+        {
+            timestamp: "2026-10-03T09:00:00",
+            message_id: "msg001",
+            channel: "sms",
+            sender_name: "+911234567890",
+            sender_domain: "+911234567890",
+            claimed_identity: `${org} IT Helpdesk`,
+            claimed_role: "IT administrator",
+            claimed_organisation: org,
+            message_text: `URGENT notice from ${org} IT: your network password will expire today. Confirm your OTP and current password on the verification form immediately or your account will be blocked. Do not share this with anyone.`,
+            context: `reported by the ${org} service desk`
+        },
+        {
+            timestamp: "2026-10-03T09:30:00",
+            message_id: "msg002",
+            channel: "email",
+            sender_name: "hr@hr-update-portal.top",
+            sender_domain: "hr-update-portal.top",
+            claimed_identity: `${org} Payroll`,
+            claimed_role: "hr manager",
+            claimed_organisation: org,
+            message_text: `Attention ${org} employees. Your salary revision is approved. Share your bank account number and OTP on this secure payroll form to update your records. Click the link below to submit details.`,
+            context: `forwarded to the ${org} IT inbox by staff`
+        },
+        {
+            timestamp: "2026-10-03T10:00:00",
+            message_id: "msg003",
+            channel: "email",
+            sender_name: `ceo@${domain}`,
+            sender_domain: domain,
+            claimed_identity: `${org} CEO Office`,
+            claimed_role: "CEO",
+            claimed_organisation: org,
+            message_text: `This is the ${org} CEO. We have a confidential board meeting today. I need you to change the vendor bank details immediately and transfer the advance payment before midnight. Do not discuss this with the finance department.`,
+            context: `reported by the ${org} finance team`
+        },
+        {
+            timestamp: "2026-10-03T10:30:00",
+            message_id: "msg004",
+            channel: "sms",
+            sender_name: "+919876543210",
+            sender_domain: "+919876543210",
+            claimed_identity: `${org} Legal & Compliance`,
+            claimed_role: "legal officer",
+            claimed_organisation: org,
+            message_text: `URGENT notice from ${org} Legal & Compliance: a case has been registered against you for money laundering. Your ${org} bank account will be frozen within 24 hours and a penalty of 50000 rupees has been imposed. Do not call anyone to verify.`,
+            context: `received by ${org} staff on a company-issued mobile`
+        },
+        {
+            timestamp: "2026-10-03T11:00:00",
+            message_id: "msg005",
+            channel: "email",
+            sender_name: "accounts@invoice-approval.top",
+            sender_domain: "invoice-approval.top",
+            claimed_identity: `${org} Accounts`,
+            claimed_role: "finance officer",
+            claimed_organisation: org,
+            message_text: `URGENT: the ${org} accounts department requires the vendor bank details changed today. Transfer the advance payment to the new beneficiary before midnight and confirm your OTP to authorise. Do not discuss this with anyone.`,
+            context: `reported by the ${org} accounts team`
+        },
+        {
+            timestamp: "2026-10-03T11:30:00",
+            message_id: "msg006",
+            channel: "sms",
+            sender_name: "+919812345678",
+            sender_domain: "+919812345678",
+            claimed_identity: `${org} Security Team`,
+            claimed_role: "security officer",
+            claimed_organisation: org,
+            message_text: `Your ${org} account is suspended. Confirm your OTP immediately on the verification link or your access will be blocked. Click here to verify now. Do not share this code with anyone.`,
+            context: `flagged by ${org} IT security`
+        }
+    ];
+}
+
 function initializeDigitalImpersonation() {
     const senderInput = $("#impersonationSenderInput");
     const messageInput = $("#impersonationMessageInput");
@@ -1476,14 +1568,9 @@ function initializeDigitalImpersonation() {
 }
 
 function loadImpersonationDemo() {
-    const demoMessages = [
-        {timestamp:"2026-10-03T09:00:00",message_id:"msg001",channel:"sms",sender_name:"+911234567890",sender_domain:"+911234567890",claimed_identity:"Delhi Police Cyber Cell",claimed_role:"police officer",claimed_organisation:"Delhi Police",message_text:"URGENT notice from government of india: a case has been registered against you for money laundering. Your bank account will be frozen within 24 hours. Do not tell anyone about this notice.",context:"employee received on personal mobile"},
-        {timestamp:"2026-10-03T09:30:00",message_id:"msg002",channel:"email",sender_name:"alerts@sbi-netbanking-alert.xyz",sender_domain:"sbi-netbanking-alert.xyz",claimed_identity:"SBI Customer Care",claimed_role:"security officer",claimed_organisation:"State Bank of India",message_text:"Dear valued customer your account will be suspended today. You must confirm your OTP and net banking password immediately or your account will be deactivated. Click here to update KYC now.",context:"vendor reported a bank phishing email"},
-        {timestamp:"2026-10-03T10:00:00",message_id:"msg003",channel:"email",sender_name:"anil.verma@acme-corp.com",sender_domain:"acme-corp.com",claimed_identity:"",claimed_role:"CEO",claimed_organisation:"",message_text:"This is your CEO. We have a confidential board meeting today. I need you to change the vendor bank details immediately and transfer the advance payment before midnight. Do not discuss this with the finance department.",context:"finance executive received an internal fraud attempt"},
-        {timestamp:"2026-10-03T10:30:00",message_id:"msg004",channel:"sms",sender_name:"+919876543210",sender_domain:"+919876543210",claimed_identity:"Income Tax Department",claimed_role:"tax officer",claimed_organisation:"Income Tax Department",message_text:"Your income tax return is pending and a penalty of 50000 rupees has been imposed. Legal action will be taken if you do not pay immediately. Kindly do not call the department to verify.",context:"staff member reported an SMS scam"},
-        {timestamp:"2026-10-03T11:00:00",message_id:"msg005",channel:"email",sender_name:"hr@hr-update-portal.top",sender_domain:"hr-update-portal.top",claimed_identity:"Human Resources",claimed_role:"hr manager",claimed_organisation:"Acme Corporation",message_text:"Attention all employees this is HR. Your salary revision is approved. Share your bank account number and OTP on this secure form to update your payroll records. Click the link below to submit details.",context:"circular email with a lookalike HR portal"},
-        {timestamp:"2026-10-03T11:30:00",message_id:"msg006",channel:"sms",sender_name:"+919812345678",sender_domain:"+919812345678",claimed_identity:"University Examination Cell",claimed_role:"registrar",claimed_organisation:"University Authority",message_text:"Your examination hall ticket is cancelled. Confirm your OTP on http://exam-verify.xyz to reissue the hall ticket before midnight or you will be debarred from the exam.",context:"student reported a verification scam"}
-    ];
+    const profile = getOrganisationProfile();
+
+    const demoMessages = buildImpersonationDemoMessages(profile);
 
     state.impersonationMessages = demoMessages;
 
@@ -1502,7 +1589,7 @@ function loadImpersonationDemo() {
     resetImpersonationResult();
     showToast(
         "Demo scenario loaded",
-        `${demoMessages.length} reported messages are ready to analyse. Each sender is an email address or phone number; editing either field analyses only that message.`,
+        `${demoMessages.length} reported messages for ${profile.name} are ready to analyse. Senders are email addresses or phone numbers; editing either field analyses only that message.`,
         "success"
     );
 }
@@ -4077,6 +4164,59 @@ if (clearHistoryButton) {
    ORGANISATION SETTINGS
    ============================================================ */
 
+function organisationSlug(name) {
+
+    return (
+        String(name || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "")
+    ) || "organisation";
+}
+
+
+function normaliseOrganisationDomain(value) {
+
+    return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/^https?:\/\//, "")
+        .replace(/\/.*$/, "");
+}
+
+
+function isValidOrganisationDomain(value) {
+
+    return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(
+        value
+    );
+}
+
+
+/* The organisation profile drives every organisation-specific sample
+   in the dashboard (currently the Digital Impersonation demo data):
+   the configured name and email domain, or a derived domain when none
+   is configured. */
+
+function getOrganisationProfile() {
+
+    const name =
+        (state.organisation || "").trim() ||
+        "Acme Corporation";
+
+    const configured =
+        normaliseOrganisationDomain(
+            state.organisationDomain
+        );
+
+    const domain = isValidOrganisationDomain(configured)
+        ? configured
+        : `${organisationSlug(name)}.com`;
+
+    return { name, domain };
+}
+
+
 function initializeOrganisationSettings() {
 
     const saveButton =
@@ -4084,6 +4224,9 @@ function initializeOrganisationSettings() {
 
     const input =
         $("#organisationInput");
+
+    const domainInput =
+        $("#organisationDomainInput");
 
 
     if (
@@ -4098,6 +4241,12 @@ function initializeOrganisationSettings() {
     input.value =
         state.organisation;
 
+    if (domainInput) {
+
+        domainInput.value =
+            state.organisationDomain;
+    }
+
 
     saveButton.addEventListener(
         "click",
@@ -4105,6 +4254,10 @@ function initializeOrganisationSettings() {
 
             const value =
                 input.value.trim();
+
+            const domain = normaliseOrganisationDomain(
+                domainInput ? domainInput.value : ""
+            );
 
 
             if (!value) {
@@ -4119,8 +4272,26 @@ function initializeOrganisationSettings() {
             }
 
 
+            if (
+                domain &&
+                !isValidOrganisationDomain(domain)
+            ) {
+
+                showToast(
+                    "Invalid organisation domain",
+                    "Enter a domain such as acme-corp.com, or leave it blank to derive one from the name.",
+                    "error"
+                );
+
+                return;
+            }
+
+
             state.organisation =
                 value;
+
+            state.organisationDomain =
+                domain;
 
 
             try {
@@ -4128,6 +4299,11 @@ function initializeOrganisationSettings() {
                 localStorage.setItem(
                     CONFIG.ORGANISATION_KEY,
                     value
+                );
+
+                localStorage.setItem(
+                    CONFIG.ORGANISATION_DOMAIN_KEY,
+                    domain
                 );
 
             } catch (error) {
@@ -4144,7 +4320,7 @@ function initializeOrganisationSettings() {
 
             showToast(
                 "Organisation updated",
-                "CyberGuard interface context has been updated.",
+                `Sample data now uses ${getOrganisationProfile().name} (${getOrganisationProfile().domain}).`,
                 "success"
             );
         }
@@ -4170,6 +4346,17 @@ function loadOrganisation() {
                 saved.trim();
         }
 
+        const savedDomain =
+            localStorage.getItem(
+                CONFIG.ORGANISATION_DOMAIN_KEY
+            );
+
+        if (savedDomain !== null) {
+
+            state.organisationDomain =
+                savedDomain.trim();
+        }
+
     } catch (error) {
 
         console.warn(
@@ -4190,6 +4377,9 @@ function updateOrganisationUI() {
 
     const input =
         $("#organisationInput");
+
+    const domainInput =
+        $("#organisationDomainInput");
 
 
     if (topName) {
@@ -4213,6 +4403,16 @@ function updateOrganisationUI() {
 
         input.value =
             state.organisation;
+    }
+
+
+    if (
+        domainInput &&
+        document.activeElement !== domainInput
+    ) {
+
+        domainInput.value =
+            state.organisationDomain;
     }
 }
 
