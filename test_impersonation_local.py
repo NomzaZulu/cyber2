@@ -18,13 +18,15 @@ from api.digital_impersonation import app  # noqa: E402
 
 
 # Exact demo payload from script.js -> loadImpersonationDemo()
+# Default organisation profile: Acme Corporation / acme-corp.com.
+# test_sender_logic.mjs fails if script.js and this payload drift apart.
 DEMO_MESSAGES = [
-    {"timestamp": "2026-10-03T09:00:00", "message_id": "msg001", "channel": "sms", "sender_name": "+911234567890", "sender_domain": "+911234567890", "claimed_identity": "Delhi Police Cyber Cell", "claimed_role": "police officer", "claimed_organisation": "Delhi Police", "message_text": "URGENT notice from government of india: a case has been registered against you for money laundering. Your bank account will be frozen within 24 hours. Do not tell anyone about this notice.", "context": "employee received on personal mobile"},
-    {"timestamp": "2026-10-03T09:30:00", "message_id": "msg002", "channel": "email", "sender_name": "alerts@sbi-netbanking-alert.xyz", "sender_domain": "sbi-netbanking-alert.xyz", "claimed_identity": "SBI Customer Care", "claimed_role": "security officer", "claimed_organisation": "State Bank of India", "message_text": "Dear valued customer your account will be suspended today. You must confirm your OTP and net banking password immediately or your account will be deactivated. Click here to update KYC now.", "context": "vendor reported a bank phishing email"},
-    {"timestamp": "2026-10-03T10:00:00", "message_id": "msg003", "channel": "email", "sender_name": "anil.verma@acme-corp.com", "sender_domain": "acme-corp.com", "claimed_identity": "", "claimed_role": "CEO", "claimed_organisation": "", "message_text": "This is your CEO. We have a confidential board meeting today. I need you to change the vendor bank details immediately and transfer the advance payment before midnight. Do not discuss this with the finance department.", "context": "finance executive received an internal fraud attempt"},
-    {"timestamp": "2026-10-03T10:30:00", "message_id": "msg004", "channel": "sms", "sender_name": "+919876543210", "sender_domain": "+919876543210", "claimed_identity": "Income Tax Department", "claimed_role": "tax officer", "claimed_organisation": "Income Tax Department", "message_text": "Your income tax return is pending and a penalty of 50000 rupees has been imposed. Legal action will be taken if you do not pay immediately. Kindly do not call the department to verify.", "context": "staff member reported an SMS scam"},
-    {"timestamp": "2026-10-03T11:00:00", "message_id": "msg005", "channel": "email", "sender_name": "hr@hr-update-portal.top", "sender_domain": "hr-update-portal.top", "claimed_identity": "Human Resources", "claimed_role": "hr manager", "claimed_organisation": "Acme Corporation", "message_text": "Attention all employees this is HR. Your salary revision is approved. Share your bank account number and OTP on this secure form to update your payroll records. Click the link below to submit details.", "context": "circular email with a lookalike HR portal"},
-    {"timestamp": "2026-10-03T11:30:00", "message_id": "msg006", "channel": "sms", "sender_name": "+919812345678", "sender_domain": "+919812345678", "claimed_identity": "University Examination Cell", "claimed_role": "registrar", "claimed_organisation": "University Authority", "message_text": "Your examination hall ticket is cancelled. Confirm your OTP on http://exam-verify.xyz to reissue the hall ticket before midnight or you will be debarred from the exam.", "context": "student reported a verification scam"},
+    {"timestamp": "2026-10-03T09:00:00", "message_id": "msg001", "channel": "sms", "sender_name": "+911234567890", "sender_domain": "+911234567890", "claimed_identity": "Acme Corporation IT Helpdesk", "claimed_role": "IT administrator", "claimed_organisation": "Acme Corporation", "message_text": "URGENT notice from Acme Corporation IT: your network password will expire today. Confirm your OTP and current password on the verification form immediately or your account will be blocked. Do not share this with anyone.", "context": "reported by the Acme Corporation service desk"},
+    {"timestamp": "2026-10-03T09:30:00", "message_id": "msg002", "channel": "email", "sender_name": "hr@hr-update-portal.top", "sender_domain": "hr-update-portal.top", "claimed_identity": "Acme Corporation Payroll", "claimed_role": "hr manager", "claimed_organisation": "Acme Corporation", "message_text": "Attention Acme Corporation employees. Your salary revision is approved. Share your bank account number and OTP on this secure payroll form to update your records. Click the link below to submit details.", "context": "forwarded to the Acme Corporation IT inbox by staff"},
+    {"timestamp": "2026-10-03T10:00:00", "message_id": "msg003", "channel": "email", "sender_name": "ceo@acme-corp.com", "sender_domain": "acme-corp.com", "claimed_identity": "Acme Corporation CEO Office", "claimed_role": "CEO", "claimed_organisation": "Acme Corporation", "message_text": "This is the Acme Corporation CEO. We have a confidential board meeting today. I need you to change the vendor bank details immediately and transfer the advance payment before midnight. Do not discuss this with the finance department.", "context": "reported by the Acme Corporation finance team"},
+    {"timestamp": "2026-10-03T10:30:00", "message_id": "msg004", "channel": "sms", "sender_name": "+919876543210", "sender_domain": "+919876543210", "claimed_identity": "Acme Corporation Legal & Compliance", "claimed_role": "legal officer", "claimed_organisation": "Acme Corporation", "message_text": "URGENT notice from Acme Corporation Legal & Compliance: a case has been registered against you for money laundering. Your Acme Corporation bank account will be frozen within 24 hours and a penalty of 50000 rupees has been imposed. Do not call anyone to verify.", "context": "received by Acme Corporation staff on a company-issued mobile"},
+    {"timestamp": "2026-10-03T11:00:00", "message_id": "msg005", "channel": "email", "sender_name": "accounts@invoice-approval.top", "sender_domain": "invoice-approval.top", "claimed_identity": "Acme Corporation Accounts", "claimed_role": "finance officer", "claimed_organisation": "Acme Corporation", "message_text": "URGENT: the Acme Corporation accounts department requires the vendor bank details changed today. Transfer the advance payment to the new beneficiary before midnight and confirm your OTP to authorise. Do not discuss this with anyone.", "context": "reported by the Acme Corporation accounts team"},
+    {"timestamp": "2026-10-03T11:30:00", "message_id": "msg006", "channel": "sms", "sender_name": "+919812345678", "sender_domain": "+919812345678", "claimed_identity": "Acme Corporation Security Team", "claimed_role": "security officer", "claimed_organisation": "Acme Corporation", "message_text": "Your Acme Corporation account is suspended. Confirm your OTP immediately on the verification link or your access will be blocked. Click here to verify now. Do not share this code with anyone.", "context": "flagged by Acme Corporation IT security"},
 ]
 
 # Legitimate business messages that must never be classified high risk.
@@ -45,6 +47,17 @@ r = client.get("/")
 print("status:", r.status_code, json.dumps(r.json())[:140])
 if r.status_code != 200:
     failures.append("health check did not return 200")
+
+
+# The demo dataset must describe this organisation, not unrelated
+# third-party brands: every row claims the organisation and names it in
+# the reporting context.
+org_names = {msg.get("claimed_organisation") for msg in DEMO_MESSAGES}
+if org_names != {"Acme Corporation"}:
+    failures.append(f"demo rows must all claim the organisation: {org_names}")
+
+if not all("Acme Corporation" in msg.get("context", "") for msg in DEMO_MESSAGES):
+    failures.append("every demo context must name the organisation")
 
 
 print("\n== demo analysis (frontend demo payload) ==")
