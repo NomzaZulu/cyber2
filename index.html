@@ -195,11 +195,9 @@
 
                     <div class="organisation-chip">
 
-                        <span class="organisation-chip-icon">O</span>
-
-                        <span id="topOrganisationName">
-                            Your Organisation
-                        </span>
+                        <span class="organisation-chip-icon">O</span>                                <span id="topOrganisationName">
+                                    Acme Corporation
+                                </span>
 
                     </div>
 
@@ -1710,7 +1708,7 @@
                             <div class="takeover-info">
                                 <span class="takeover-info-icon">i</span>
                                 <p>
-                                    Enter the sender as an email address or a phone number, then paste the reported message. CyberGuard checks six impersonation indicators: authority spoofing, executive impersonation, brand impersonation, urgency and pressure tactics, threatening language and credential harvesting.
+                                    Enter the sender as an email address or a phone number, then paste the reported message. CyberGuard checks six impersonation indicators: authority spoofing, executive impersonation, brand impersonation, urgency and pressure tactics, threatening language and credential harvesting. The demo scenario is generated from your Organisation Settings, so every sample message is an incident reported by your organisation.
                                 </p>
                             </div>
 
@@ -1954,7 +1952,7 @@
                                 </span>
 
                                 <h3 id="organisationDisplayName">
-                                    Your Organisation
+                                    Acme Corporation
                                 </h3>
 
                                 <p>
@@ -1983,10 +1981,7 @@
 
                                 </div>
 
-                            </div>
-
-
-                            <div class="field">
+                            </div>                            <div class="field">
 
                                 <label for="organisationInput">
                                     ORGANISATION NAME
@@ -2000,6 +1995,21 @@
 
                             </div>
 
+                            <div class="field">
+
+                                <label for="organisationDomainInput">
+                                    ORGANISATION EMAIL DOMAIN
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="organisationDomainInput"
+                                    placeholder="e.g. acme-corp.com"
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                >
+
+                            </div>
 
                             <button
                                 class="scan-button"
@@ -2018,8 +2028,11 @@
                             </button>
 
                             <p class="settings-note">
-                                This currently changes the interface
-                                context only. It does not change the
+                                Used for the interface context and for
+                                the organisation-specific sample data
+                                in Digital Impersonation. Leave the
+                                domain blank to derive it from the
+                                name. It does not change the
                                 underlying ML model.
                             </p>
 
