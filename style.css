@@ -1639,6 +1639,28 @@ a {
     background-repeat: no-repeat;
 }
 
+/* Field hint / inline validation */
+
+.field-hint {
+    margin: 8px 0 0;
+
+    color: var(--text-muted);
+
+    font-size: 10px;
+    line-height: 1.55;
+}
+
+.field-hint.error {
+    color: var(--red);
+}
+
+.field input.invalid {
+    border-color: rgba(239, 68, 68, 0.65);
+
+    box-shadow:
+        0 0 0 3px rgba(239, 68, 68, 0.08);
+}
+
 
 /* Input hints */
 
@@ -3955,6 +3977,7 @@ body::after {
 .takeover-risk-badge.high { color:#f87171;background:rgba(239,68,68,.08); }.takeover-risk-badge.medium { color:#fbbf24;background:rgba(245,158,11,.08); }.takeover-risk-badge.low { color:#4ade80;background:rgba(34,197,94,.08); }
 .takeover-account-score { display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border); }
 .takeover-account-score strong { color:var(--text-soft);font-family:"JetBrains Mono",monospace;font-size: 11px; }
+.takeover-sender { margin:5px 0 0;color:var(--text-muted);font-family:"JetBrains Mono",monospace;font-size: 9px;word-break:break-all; }
 .takeover-detector-tags { display:flex;flex-wrap:wrap;gap:4px;margin-top:8px; }.takeover-reasons { margin-top:9px; }.takeover-reasons ul { margin:5px 0 0 15px;color:var(--text-muted);font-size: 9px;line-height:1.55; }
 .takeover-detection-card { display:flex;align-items:flex-start;gap:9px;padding:9px;background:rgba(255,255,255,.018);border:1px solid var(--border);border-radius:7px; }
 .takeover-detection-icon { width:23px;height:23px;flex:0 0 auto;display:grid;place-items:center;color:var(--yellow);background:rgba(245,158,11,.08);border-radius:6px;font-size: 10px;font-weight:800; }
