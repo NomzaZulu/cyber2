@@ -19,12 +19,12 @@ from api.digital_impersonation import app  # noqa: E402
 
 # Exact demo payload from script.js -> loadImpersonationDemo()
 DEMO_MESSAGES = [
-    {"timestamp": "2026-10-03T09:00:00", "message_id": "msg001", "channel": "sms", "sender_name": "Unknown", "sender_domain": "", "claimed_identity": "Delhi Police Cyber Cell", "claimed_role": "police officer", "claimed_organisation": "Delhi Police", "message_text": "URGENT notice from government of india: a case has been registered against you for money laundering. Your bank account will be frozen within 24 hours. Do not tell anyone about this notice.", "context": "employee received on personal mobile"},
-    {"timestamp": "2026-10-03T09:30:00", "message_id": "msg002", "channel": "email", "sender_name": "IT Service Desk", "sender_domain": "sbi-netbanking-alert.xyz", "claimed_identity": "SBI Customer Care", "claimed_role": "security officer", "claimed_organisation": "State Bank of India", "message_text": "Dear valued customer your account will be suspended today. You must confirm your OTP and net banking password immediately or your account will be deactivated. Click here to update KYC now.", "context": "vendor reported a bank phishing email"},
-    {"timestamp": "2026-10-03T10:00:00", "message_id": "msg003", "channel": "email", "sender_name": "Anil Verma", "sender_domain": "", "claimed_identity": "", "claimed_role": "CEO", "claimed_organisation": "", "message_text": "This is your CEO. We have a confidential board meeting today. I need you to change the vendor bank details immediately and transfer the advance payment before midnight. Do not discuss this with the finance department.", "context": "finance executive received an internal fraud attempt"},
-    {"timestamp": "2026-10-03T10:30:00", "message_id": "msg004", "channel": "sms", "sender_name": "Unknown", "sender_domain": "", "claimed_identity": "Income Tax Department", "claimed_role": "tax officer", "claimed_organisation": "Income Tax Department", "message_text": "Your income tax return is pending and a penalty of 50000 rupees has been imposed. Legal action will be taken if you do not pay immediately. Kindly do not call the department to verify.", "context": "staff member reported an SMS scam"},
-    {"timestamp": "2026-10-03T11:00:00", "message_id": "msg005", "channel": "email", "sender_name": "HR Admin", "sender_domain": "hr-update-portal.top", "claimed_identity": "Human Resources", "claimed_role": "hr manager", "claimed_organisation": "Acme Corporation", "message_text": "Attention all employees this is HR. Your salary revision is approved. Share your bank account number and OTP on this secure form to update your payroll records. Click the link below to submit details.", "context": "circular email with a lookalike HR portal"},
-    {"timestamp": "2026-10-03T11:30:00", "message_id": "msg006", "channel": "sms", "sender_name": "Unknown", "sender_domain": "", "claimed_identity": "University Examination Cell", "claimed_role": "registrar", "claimed_organisation": "University Authority", "message_text": "Your examination hall ticket is cancelled. Confirm your OTP on http://exam-verify.xyz to reissue the hall ticket before midnight or you will be debarred from the exam.", "context": "student reported a verification scam"},
+    {"timestamp": "2026-10-03T09:00:00", "message_id": "msg001", "channel": "sms", "sender_name": "+911234567890", "sender_domain": "+911234567890", "claimed_identity": "Delhi Police Cyber Cell", "claimed_role": "police officer", "claimed_organisation": "Delhi Police", "message_text": "URGENT notice from government of india: a case has been registered against you for money laundering. Your bank account will be frozen within 24 hours. Do not tell anyone about this notice.", "context": "employee received on personal mobile"},
+    {"timestamp": "2026-10-03T09:30:00", "message_id": "msg002", "channel": "email", "sender_name": "alerts@sbi-netbanking-alert.xyz", "sender_domain": "sbi-netbanking-alert.xyz", "claimed_identity": "SBI Customer Care", "claimed_role": "security officer", "claimed_organisation": "State Bank of India", "message_text": "Dear valued customer your account will be suspended today. You must confirm your OTP and net banking password immediately or your account will be deactivated. Click here to update KYC now.", "context": "vendor reported a bank phishing email"},
+    {"timestamp": "2026-10-03T10:00:00", "message_id": "msg003", "channel": "email", "sender_name": "anil.verma@acme-corp.com", "sender_domain": "acme-corp.com", "claimed_identity": "", "claimed_role": "CEO", "claimed_organisation": "", "message_text": "This is your CEO. We have a confidential board meeting today. I need you to change the vendor bank details immediately and transfer the advance payment before midnight. Do not discuss this with the finance department.", "context": "finance executive received an internal fraud attempt"},
+    {"timestamp": "2026-10-03T10:30:00", "message_id": "msg004", "channel": "sms", "sender_name": "+919876543210", "sender_domain": "+919876543210", "claimed_identity": "Income Tax Department", "claimed_role": "tax officer", "claimed_organisation": "Income Tax Department", "message_text": "Your income tax return is pending and a penalty of 50000 rupees has been imposed. Legal action will be taken if you do not pay immediately. Kindly do not call the department to verify.", "context": "staff member reported an SMS scam"},
+    {"timestamp": "2026-10-03T11:00:00", "message_id": "msg005", "channel": "email", "sender_name": "hr@hr-update-portal.top", "sender_domain": "hr-update-portal.top", "claimed_identity": "Human Resources", "claimed_role": "hr manager", "claimed_organisation": "Acme Corporation", "message_text": "Attention all employees this is HR. Your salary revision is approved. Share your bank account number and OTP on this secure form to update your payroll records. Click the link below to submit details.", "context": "circular email with a lookalike HR portal"},
+    {"timestamp": "2026-10-03T11:30:00", "message_id": "msg006", "channel": "sms", "sender_name": "+919812345678", "sender_domain": "+919812345678", "claimed_identity": "University Examination Cell", "claimed_role": "registrar", "claimed_organisation": "University Authority", "message_text": "Your examination hall ticket is cancelled. Confirm your OTP on http://exam-verify.xyz to reissue the hall ticket before midnight or you will be debarred from the exam.", "context": "student reported a verification scam"},
 ]
 
 # Legitimate business messages that must never be classified high risk.
@@ -65,6 +65,19 @@ if summary["high_risk"] < 5:
     failures.append("expected at least 5 high-risk messages in the demo scenario")
 if summary["detector_types"] != 6:
     failures.append("expected 6 detector types")
+
+# Senders are email addresses or phone numbers, so every reported
+# sender must reach the campaign view (domains and numbers cluster).
+demo_campaigns = r.json()["result"]["campaigns"]
+print("campaigns:", json.dumps(demo_campaigns))
+if not demo_campaigns:
+    failures.append("expected sender campaigns for the email/phone demo senders")
+
+# The sender address must be echoed back so the dashboard and PDF
+# report can show who actually sent the reported message.
+demo_messages = r.json()["result"]["messages"]
+if any(not msg.get("sender_name") for msg in demo_messages):
+    failures.append("every analysed message must carry its sender address")
 
 
 print("\n== benign messages must not be high risk ==")
