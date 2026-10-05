@@ -1151,32 +1151,39 @@ if __name__ == "__main__":
             "message_id": "msg001",
             "timestamp": "2026-10-03T09:00:00",
             "channel": "sms",
-            "sender_domain": "",
-            "claimed_identity": "Delhi Police Cyber Cell",
-            "claimed_role": "police officer",
-            "claimed_organisation": "Delhi Police",
+            "sender_name": "+919876543210",
+            "sender_domain": "+919876543210",
+            "claimed_identity": "Acme Corporation Legal & Compliance",
+            "claimed_role": "legal officer",
+            "claimed_organisation": "Acme Corporation",
             "message_text": (
-                "URGENT: a case has been registered against you. "
-                "Your account will be frozen within 24 hours. "
-                "Do not tell anyone about this notice."
+                "URGENT notice from Acme Corporation Legal: a "
+                "case has been registered against you for money "
+                "laundering. Your bank account will be frozen "
+                "within 24 hours. Do not call anyone to verify."
             ),
-            "context": "employee received on personal number"
+            "context": (
+                "received by Acme Corporation staff on a "
+                "company-issued mobile"
+            )
         },
 
         {
             "message_id": "msg002",
-            "timestamp": "2026-10-03T10:00:00",
+            "timestamp": "2026-10-03T09:30:00",
             "channel": "email",
-            "sender_domain": "hdfc-netbanking-secure.xyz",
-            "claimed_identity": "HDFC Bank KYC Desk",
-            "claimed_role": "bank official",
-            "claimed_organisation": "HDFC Bank",
+            "sender_name": "hr@hr-update-portal.top",
+            "sender_domain": "hr-update-portal.top",
+            "claimed_identity": "Acme Corporation Payroll",
+            "claimed_role": "hr manager",
+            "claimed_organisation": "Acme Corporation",
             "message_text": (
-                "Your account will be suspended today. "
-                "Click here to update KYC and confirm your OTP "
-                "and net banking password."
+                "Attention Acme Corporation employees. Share "
+                "your bank account number and OTP on this "
+                "secure payroll form. Click the link below to "
+                "submit details."
             ),
-            "context": "vendor received an email invoice scam"
+            "context": "forwarded to the Acme Corporation IT inbox by staff"
         }
     ])
 
