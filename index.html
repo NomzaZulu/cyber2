@@ -1687,7 +1687,7 @@
                             <div class="eyebrow">THREAT DETECTION / 03</div>
                             <h2>Digital Impersonation Detection</h2>
                             <p>
-                                Analyse reported messages and social content to detect impersonation of government officials, senior management, financial institutions, brands and known contacts.
+                                Analyse reported messages by sender email address or phone number to detect impersonation of government officials, senior management, financial institutions, brands and known contacts.
                             </p>
                         </div>
 
@@ -1710,22 +1710,26 @@
                             <div class="takeover-info">
                                 <span class="takeover-info-icon">i</span>
                                 <p>
-                                    Enter the sender of a reported message and paste its text. CyberGuard checks six impersonation indicators: authority spoofing, executive impersonation, brand impersonation, urgency and pressure tactics, threatening language and credential harvesting.
+                                    Enter the sender as an email address or a phone number, then paste the reported message. CyberGuard checks six impersonation indicators: authority spoofing, executive impersonation, brand impersonation, urgency and pressure tactics, threatening language and credential harvesting.
                                 </p>
                             </div>
 
                             <div class="field">
                                 <div class="field-label-row">
-                                    <label for="impersonationSenderInput">SENDER — NAME OR ADDRESS</label>
+                                    <label for="impersonationSenderInput">SENDER — EMAIL OR PHONE</label>
                                 </div>
 
                                 <input
                                     type="text"
                                     id="impersonationSenderInput"
-                                    placeholder="e.g. IT Service Desk, +91 98765 43210, alerts@secure-login.xyz"
+                                    placeholder="e.g. alerts@secure-login.xyz or +91 98765 43210"
                                     autocomplete="off"
                                     spellcheck="false"
                                 >
+
+                                <p class="field-hint" id="impersonationSenderHint">
+                                    Email address or phone number only — sender display names are not accepted.
+                                </p>
                             </div>
 
                             <div class="field">
@@ -1738,6 +1742,13 @@
                                     placeholder="Paste the reported SMS, email or social-media message here..."
                                     spellcheck="false"
                                 ></textarea>
+                            </div>
+
+                            <div class="input-hints">
+                                <span>✓ Email or phone sender</span>
+                                <span>✓ Identity claims</span>
+                                <span>✓ Urgency &amp; pressure</span>
+                                <span>✓ Credential requests</span>
                             </div>
 
                             <div class="takeover-actions">
@@ -1762,7 +1773,7 @@
                             <div class="result-empty" id="impersonationResultEmpty">
                                 <div class="empty-icon">◌</div>
                                 <h4>No messages analysed</h4>
-                                <p>Enter a sender and message to generate an impersonation assessment.</p>
+                                <p>Enter a sender email address or phone number with its message to generate an impersonation assessment.</p>
                             </div>
 
                             <div class="takeover-result-content hidden" id="impersonationResultContent">
